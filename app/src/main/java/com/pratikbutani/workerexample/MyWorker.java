@@ -26,7 +26,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.pratikbutani.workerexample.apiservice.ApiUtils;
 import com.pratikbutani.workerexample.apiservice.BaseApiService;
-import com.pratikbutani.workerexample.model.LocationSender;
+import com.pratikbutani.workerexample.data.AppDatabase;
+import com.pratikbutani.workerexample.model.LocationHistory;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -38,7 +39,6 @@ import java.util.Locale;
 import java.util.Random;
 
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -79,13 +79,19 @@ public class MyWorker extends Worker {
 
 	private BaseApiService mApiService;
 
-	private LocationSender locationSender;
+	private LocationHistory locationHistory;
+
+	private LocationHistory currentLocation;
 
 	private String message;
+
+	private AppDatabase db;
 
 	public MyWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
 		super(context, workerParams);
 		mContext = context;
+		db = AppDatabase.getInstance(mContext);
+
 	}
 
 	@NonNull
@@ -103,7 +109,7 @@ public class MyWorker extends Worker {
 
 		mApiService = ApiUtils.getAPIService();
 
-		locationSender = new LocationSender();
+		locationHistory = new LocationHistory();
 
 		try {
 			Date currentDate = dateFormat.parse(formattedDate);
@@ -150,16 +156,31 @@ public class MyWorker extends Worker {
 											notificationManager.createNotificationChannel(channel);
 										}
 
-										locationSender.setCenterLatitude(mLocation.getLatitude());
-										locationSender.setCenterLongitude(mLocation.getLongitude());
+										locationHistory.setLatitude(mLocation.getLatitude());
+										//locationHistory.setLongitude(mLocation.getLongitude());
+										//2.153719, 117.492190
+										//2.153673, 117.492211
+										//2.153599, 117.492463
+										//2.153719, 117.492190
+										//2.152450, 117.493107
+										//2.153264, 117.492718
+										//2.153947, 117.492282
+										//2.154143, 117.492044
+										//locationHistory.setLongitude(117.492044);
+										//locationHistory.setLatitude(2.154143);
 										String deviceInfo="Device Info:";
 										deviceInfo += "\n OS Version: " + System.getProperty("os.version") + "(" + android.os.Build.VERSION.INCREMENTAL + ")";
 										deviceInfo += "\n OS API Level: " + android.os.Build.VERSION.SDK_INT;
 										deviceInfo += "\n Device: " + android.os.Build.DEVICE;
 										deviceInfo += "\n Model (and Product): " + android.os.Build.MODEL + " ("+ android.os.Build.PRODUCT + ")";
-										locationSender.setDeviceInfo(deviceInfo);
-										System.out.println(locationSender.toString());
-										sendLocation(locationSender);
+										locationHistory.setDeviceInfo(deviceInfo);
+										currentLocation = db.locationDao().selectLast();
+										Gson gson = new Gson();
+										if(currentLocation != null){
+											System.out.println("current checkpoint: "+gson.toJson(currentLocation));
+											locationHistory.setCheckpointId(currentLocation.getId());
+										}
+										sendLocation(locationHistory);
 
 										mFusedLocationClient.removeLocationUpdates(mLocationCallback);
 									} else {
@@ -205,19 +226,33 @@ public class MyWorker extends Worker {
 		return strAdd;
 	}
 
-	private void sendLocation(LocationSender locationSender){
-		mApiService.locationSend(locationSender)
+	private void sendLocation(LocationHistory locationHistory){
+		mApiService.locationSend(locationHistory)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Observer<LocationSender>() {
+				.subscribe(new Observer<LocationHistory>() {
 					@Override
 					public void onSubscribe(Disposable d) {
 
 					}
 
 					@Override
-					public void onNext(LocationSender locationSender) {
-						sendNotification(locationSender);
+					public void onNext(LocationHistory locationHistory) {
+						Gson gson = new Gson();
+						List<LocationHistory> list = db.locationDao().selectAll();
+						if(list.size() == 0){
+							if(locationHistory.getId() != null){
+								db.locationDao().insert(locationHistory);
+								System.out.println("insert: "+gson.toJson(db.locationDao().selectLast()));
+							}
+						}else{
+						    if(locationHistory.getId() != null){
+                                db.locationDao().delete();
+                                db.locationDao().insert(locationHistory);
+                                System.out.println("update insert: "+gson.toJson(db.locationDao().selectLast()));
+                            }
+						}
+						sendNotification(locationHistory);
 					}
 
 					@Override
@@ -232,17 +267,47 @@ public class MyWorker extends Worker {
 				});
 	}
 
-	void sendNotification(LocationSender locationSender){
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, mContext.getString(R.string.app_name))
-                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-                .setContentTitle(locationSender.getMassage())
-                .setContentText("You are at " + getCompleteAddressString(mLocation.getLatitude(), mLocation.getLongitude()))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("You are at " + getCompleteAddressString(mLocation.getLatitude(), mLocation.getLongitude())));
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+	void sendNotification(LocationHistory locationHistory){
+		if(locationHistory.getMessage() != null){
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, mContext.getString(R.string.app_name))
+					.setSmallIcon(android.R.drawable.ic_menu_mylocation)
+					.setContentTitle(locationHistory.getMessage())
+					.setContentText("You are at " + getCompleteAddressString(locationHistory.getLatitude(), locationHistory.getLongitude()))
+					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+					.setStyle(new NotificationCompat.BigTextStyle().bigText("You are at " + getCompleteAddressString(locationHistory.getLatitude(), locationHistory.getLongitude())));
+			NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
 
-        Random random = new Random();
-        // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(random.nextInt(50)+1, builder.build());
+			Random random = new Random();
+			// notificationId is a unique int for each notification that you must define
+			notificationManager.notify(random.nextInt(50)+1, builder.build());
+    	}
+	}
+
+    private double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        if (unit == 'K') {
+            dist = dist * 1.609344;
+        } else if (unit == 'N') {
+            dist = dist * 0.8684;
+        }
+        return (dist);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::  This function converts decimal degrees to radians             :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::  This function converts radians to decimal degrees             :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
     }
 }
