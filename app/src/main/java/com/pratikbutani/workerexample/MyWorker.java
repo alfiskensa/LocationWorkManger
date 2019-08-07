@@ -28,6 +28,7 @@ import com.pratikbutani.workerexample.apiservice.ApiUtils;
 import com.pratikbutani.workerexample.apiservice.BaseApiService;
 import com.pratikbutani.workerexample.data.AppDatabase;
 import com.pratikbutani.workerexample.model.LocationHistory;
+import com.pratikbutani.workerexample.model.LocationHistoryResponse;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -157,17 +158,7 @@ public class MyWorker extends Worker {
 										}
 
 										locationHistory.setLatitude(mLocation.getLatitude());
-										//locationHistory.setLongitude(mLocation.getLongitude());
-										//2.153719, 117.492190
-										//2.153673, 117.492211
-										//2.153599, 117.492463
-										//2.153719, 117.492190
-										//2.152450, 117.493107
-										//2.153264, 117.492718
-										//2.153947, 117.492282
-										//2.154143, 117.492044
-										//locationHistory.setLongitude(117.492044);
-										//locationHistory.setLatitude(2.154143);
+										locationHistory.setLongitude(mLocation.getLongitude());
 										String deviceInfo="Device Info:";
 										deviceInfo += "\n OS Version: " + System.getProperty("os.version") + "(" + android.os.Build.VERSION.INCREMENTAL + ")";
 										deviceInfo += "\n OS API Level: " + android.os.Build.VERSION.SDK_INT;
@@ -177,9 +168,10 @@ public class MyWorker extends Worker {
 										currentLocation = db.locationDao().selectLast();
 										Gson gson = new Gson();
 										if(currentLocation != null){
-											System.out.println("current checkpoint: "+gson.toJson(currentLocation));
 											locationHistory.setCheckpointId(currentLocation.getId());
 										}
+										System.out.println("current checkpoint : "+gson.toJson(currentLocation));
+										System.out.println("will be send  : "+gson.toJson(locationHistory));
 										sendLocation(locationHistory);
 
 										mFusedLocationClient.removeLocationUpdates(mLocationCallback);
@@ -230,29 +222,27 @@ public class MyWorker extends Worker {
 		mApiService.locationSend(locationHistory)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Observer<LocationHistory>() {
+				.subscribe(new Observer<LocationHistoryResponse>() {
 					@Override
 					public void onSubscribe(Disposable d) {
 
 					}
 
 					@Override
-					public void onNext(LocationHistory locationHistory) {
+					public void onNext(LocationHistoryResponse locationHistoryResponse) {
 						Gson gson = new Gson();
 						List<LocationHistory> list = db.locationDao().selectAll();
 						if(list.size() == 0){
-							if(locationHistory.getId() != null){
-								db.locationDao().insert(locationHistory);
-								System.out.println("insert: "+gson.toJson(db.locationDao().selectLast()));
-							}
+							db.locationDao().insert(locationHistoryResponse.getLocationHistory());
+							System.out.println("insert: "+gson.toJson(db.locationDao().selectLast()));
 						}else{
-						    if(locationHistory.getId() != null){
+						    if(locationHistoryResponse.getLocationHistory().getId() != null){
                                 db.locationDao().delete();
-                                db.locationDao().insert(locationHistory);
+                                db.locationDao().insert(locationHistoryResponse.getLocationHistory());
                                 System.out.println("update insert: "+gson.toJson(db.locationDao().selectLast()));
                             }
 						}
-						sendNotification(locationHistory);
+						sendNotification(locationHistoryResponse);
 					}
 
 					@Override
@@ -267,14 +257,17 @@ public class MyWorker extends Worker {
 				});
 	}
 
-	void sendNotification(LocationHistory locationHistory){
-		if(locationHistory.getMessage() != null){
+	void sendNotification(LocationHistoryResponse locationHistoryResponse){
+		if(locationHistoryResponse.getMessage() != null){
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, mContext.getString(R.string.app_name))
 					.setSmallIcon(android.R.drawable.ic_menu_mylocation)
-					.setContentTitle(locationHistory.getMessage())
-					.setContentText("You are at " + getCompleteAddressString(locationHistory.getLatitude(), locationHistory.getLongitude()))
+					.setContentTitle(locationHistoryResponse.getMessage())
+					.setContentText("You are at " + getCompleteAddressString(locationHistoryResponse.getLocationHistory().getLatitude(),
+							locationHistoryResponse.getLocationHistory().getLongitude()))
 					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-					.setStyle(new NotificationCompat.BigTextStyle().bigText("You are at " + getCompleteAddressString(locationHistory.getLatitude(), locationHistory.getLongitude())));
+					.setStyle(new NotificationCompat.BigTextStyle().bigText("You are at " + getCompleteAddressString(
+							locationHistoryResponse.getLocationHistory().getLatitude(),
+							locationHistoryResponse.getLocationHistory().getLongitude())));
 			NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
 
 			Random random = new Random();

@@ -45,11 +45,15 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-core:2.9.9'
 	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+	implementation 'org.projectlombok:lombok:1.18.8'
+	annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
 	// Room components
 	implementation "androidx.room:room-runtime:2.1.0-alpha04"
 	annotationProcessor "androidx.room:room-compiler:2.1.0-alpha04"
 	androidTestImplementation "androidx.room:room-testing:2.1.0-alpha04"
+
+
 
 
 	androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
