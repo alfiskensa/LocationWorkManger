@@ -8,14 +8,16 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 import com.pratikbutani.workerexample.model.LocationHistory;
+import com.pratikbutani.workerexample.model.Times;
 import com.pratikbutani.workerexample.util.DateTypeConverter;
 
-@Database(entities = {LocationHistory.class}, version = 1, exportSchema = false)
+@Database(entities = {LocationHistory.class, Times.class}, version = 1, exportSchema = false)
 @TypeConverters({DateTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase mInstance;
     private static final String DATABASE_NAME = "location-database";
     public abstract LocationDao locationDao();
+    public abstract TimesDao timesDao();
 
     private static  volatile AppDatabase INSTANCE;
 

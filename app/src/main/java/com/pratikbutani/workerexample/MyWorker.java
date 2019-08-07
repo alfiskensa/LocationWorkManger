@@ -27,8 +27,10 @@ import com.google.gson.Gson;
 import com.pratikbutani.workerexample.apiservice.ApiUtils;
 import com.pratikbutani.workerexample.apiservice.BaseApiService;
 import com.pratikbutani.workerexample.data.AppDatabase;
+import com.pratikbutani.workerexample.data.ManualTime;
 import com.pratikbutani.workerexample.model.LocationHistory;
 import com.pratikbutani.workerexample.model.LocationHistoryResponse;
+import com.pratikbutani.workerexample.model.Times;
 
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -236,6 +238,7 @@ public class MyWorker extends Worker {
 						List<LocationHistory> list = db.locationDao().selectAll();
 						if(list.size() == 0){
 							db.locationDao().insert(locationHistoryResponse.getLocationHistory());
+							insertTime(locationHistoryResponse.getLocationHistory().getDate());
 							System.out.println("insert: "+gson.toJson(db.locationDao().selectLast()));
 						}else{
 						    if(locationHistoryResponse.getLocationHistory().getId() != null){
@@ -243,6 +246,16 @@ public class MyWorker extends Worker {
                                 db.locationDao().insert(locationHistoryResponse.getLocationHistory());
                                 System.out.println("update insert: "+gson.toJson(db.locationDao().selectLast()));
                             }
+						}
+						Times time = db.timesDao().selectLast();
+						System.out.println("time in db: "+time.toString());
+						System.out.println("time from res: "+locationHistoryResponse.getLocationHistory().getDate());
+						System.out.println("total jam: "+calculateTime(locationHistoryResponse.getLocationHistory().getDate()));
+						ManualTime manualTime = calculateTime(locationHistoryResponse.getLocationHistory().getDate());
+						if(manualTime.getDays() > 0){
+							db.locationDao().delete();
+							db.timesDao().delete();
+							System.out.println("data terhapus");
 						}
 						sendNotification(locationHistoryResponse);
 					}
@@ -276,6 +289,29 @@ public class MyWorker extends Worker {
 			// notificationId is a unique int for each notification that you must define
 			notificationManager.notify(random.nextInt(50)+1, builder.build());
     	}
+	}
+
+	private void insertTime(Date date){
+		Times time = new Times();
+		time.setDate(date);
+		db.timesDao().insert(time);
+	}
+
+	private ManualTime calculateTime(Date currentDate){
+		Date d1 = currentDate;
+		Date d2 = db.timesDao().selectLast().getDate();
+
+		//in milliseconds
+		long diff = d1.getTime() - d2.getTime();
+		ManualTime manualTime = new ManualTime();
+
+		manualTime.setSeconds(diff / 1000 % 60);
+		manualTime.setMinutes(diff / (60 * 1000) % 60);
+		manualTime.setHours(diff / (60 * 60 * 1000) % 24);
+		manualTime.setDays(diff / (24 * 60 * 60 * 1000));
+
+		return manualTime;
+
 	}
 
     private double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
