@@ -27,7 +27,7 @@ public class LocationHistory {
 
     private String deviceInfo;
 
-    private String employeeId;
+    private Integer employeeId;
 
     public Integer checkpointId;
 

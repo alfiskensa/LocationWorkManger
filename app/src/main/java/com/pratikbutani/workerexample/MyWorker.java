@@ -30,6 +30,7 @@ import com.pratikbutani.workerexample.data.AppDatabase;
 import com.pratikbutani.workerexample.model.LocationHistory;
 import com.pratikbutani.workerexample.model.LocationHistoryResponse;
 
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -159,6 +160,7 @@ public class MyWorker extends Worker {
 
 										locationHistory.setLatitude(mLocation.getLatitude());
 										locationHistory.setLongitude(mLocation.getLongitude());
+										locationHistory.setEmployeeId(43884);
 										String deviceInfo="Device Info:";
 										deviceInfo += "\n OS Version: " + System.getProperty("os.version") + "(" + android.os.Build.VERSION.INCREMENTAL + ")";
 										deviceInfo += "\n OS API Level: " + android.os.Build.VERSION.SDK_INT;
