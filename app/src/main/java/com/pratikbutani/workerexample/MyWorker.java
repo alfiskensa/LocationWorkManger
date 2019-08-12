@@ -7,6 +7,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -91,16 +92,39 @@ public class MyWorker extends Worker {
 
 	private AppDatabase db;
 
-	public MyWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+	TextToSpeech tTS;
+
+
+
+    public MyWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
 		super(context, workerParams);
 		mContext = context;
 		db = AppDatabase.getInstance(mContext);
 
+		tTS = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+			@Override
+			public void onInit(int status) {
+
+				//method untuk mendeteksi suara dari text
+
+				if(status != TextToSpeech.ERROR) {
+					tTS.setLanguage(Locale.getDefault());
+					tTS.setSpeechRate(0.8f);
+					tTS.setPitch(1f);
+					//menggunakan bahasa US (amerika)
+
+				}
+			}
+		});
+
 	}
+
 
 	@NonNull
 	@Override
 	public Result doWork() {
+
+
 		Log.d(TAG, "doWork: Done");
 
 		Log.d(TAG, "onStartJob: STARTING JOB..");
@@ -114,6 +138,8 @@ public class MyWorker extends Worker {
 		mApiService = ApiUtils.getAPIService();
 
 		locationHistory = new LocationHistory();
+
+
 
 		try {
 			Date currentDate = dateFormat.parse(formattedDate);
@@ -234,6 +260,7 @@ public class MyWorker extends Worker {
 
 					@Override
 					public void onNext(LocationHistoryResponse locationHistoryResponse) {
+
 						Gson gson = new Gson();
 						List<LocationHistory> list = db.locationDao().selectAll();
 						if(list.size() == 0){
@@ -272,7 +299,10 @@ public class MyWorker extends Worker {
 				});
 	}
 
+
+
 	void sendNotification(LocationHistoryResponse locationHistoryResponse){
+
 		if(locationHistoryResponse.getMessage() != null){
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, mContext.getString(R.string.app_name))
 					.setSmallIcon(android.R.drawable.ic_menu_mylocation)
@@ -288,8 +318,24 @@ public class MyWorker extends Worker {
 			Random random = new Random();
 			// notificationId is a unique int for each notification that you must define
 			notificationManager.notify(random.nextInt(50)+1, builder.build());
+			startSpeech(locationHistoryResponse.getMessage());
+
     	}
+
 	}
+
+	private void startSpeech(String message) {
+
+
+    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			tTS.speak(message, TextToSpeech.QUEUE_FLUSH,null,null);
+
+
+		} else {
+			tTS.speak(message, TextToSpeech.QUEUE_FLUSH, null);
+		}
+	}
+
 
 	private void insertTime(Date date){
 		Times time = new Times();

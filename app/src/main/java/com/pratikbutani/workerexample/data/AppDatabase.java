@@ -11,7 +11,7 @@ import com.pratikbutani.workerexample.model.LocationHistory;
 import com.pratikbutani.workerexample.model.Times;
 import com.pratikbutani.workerexample.util.DateTypeConverter;
 
-@Database(entities = {LocationHistory.class, Times.class}, version = 1, exportSchema = false)
+@Database(entities = {LocationHistory.class, Times.class}, version = 2, exportSchema = false)
 @TypeConverters({DateTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase mInstance;
