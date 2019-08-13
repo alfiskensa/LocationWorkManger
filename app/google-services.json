@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "102569340580",
+    "firebase_url": "https://teak-advice-249202.firebaseio.com",
+    "project_id": "teak-advice-249202",
+    "storage_bucket": "teak-advice-249202.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102569340580:android:daf83457f0e9bf4a",
+        "android_client_info": {
+          "package_name": "com.fusi24.locationtracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "102569340580-u8r90sj1rv3c4mo4iteeked1onva3j5t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fusi24.locationtracker",
+            "certificate_hash": "3a75ad0999f3cc4f516dc085ab85c3de4bd55d97"
+          }
+        },
+        {
+          "client_id": "102569340580-leh2carlu46tvksksduf0j17h994br93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDloaeiRJkoIvNREmTjyy5wmX2O6zpIrr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "102569340580-leh2carlu46tvksksduf0j17h994br93.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102569340580:android:af054ef277bb4f32",
+        "android_client_info": {
+          "package_name": "com.pratikbutani.workerexample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "102569340580-nrn8hukfh861i3qjta6au6isbe0o88k8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pratikbutani.workerexample",
+            "certificate_hash": "3a75ad0999f3cc4f516dc085ab85c3de4bd55d97"
+          }
+        },
+        {
+          "client_id": "102569340580-leh2carlu46tvksksduf0j17h994br93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDloaeiRJkoIvNREmTjyy5wmX2O6zpIrr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "102569340580-leh2carlu46tvksksduf0j17h994br93.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
