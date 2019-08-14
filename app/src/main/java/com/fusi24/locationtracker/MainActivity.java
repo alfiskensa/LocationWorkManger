@@ -96,13 +96,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setMessage(){
+        ref.child(getString(R.string.tracker_id));
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
                     HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
-                    double lat = Double.parseDouble(value.get("latitude").toString());
-                    double lng = Double.parseDouble(value.get("longitude").toString());
+                    double lat = 0;
+                    double lng = 0;
+                    if(value != null){
+                        lat = Double.parseDouble(value.get("latitude").toString());
+                        lng = Double.parseDouble(value.get("longitude").toString());
+                    }
                     String msg = "You are at: "+lat+", "+lng;
                     mainBinding.logs.setText(msg);
                     if(mainBinding.showMap.getVisibility() == View.INVISIBLE){

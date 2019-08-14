@@ -1,5 +1,6 @@
 package com.fusi24.locationtracker;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 
@@ -57,32 +59,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void subscribeToUpdates() {
-        final String path = getString(R.string.firebase_path) + "/" + getString(R.string.tracker_id);
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(getString(R.string.firebase_path));
-        ref.addChildEventListener(new ChildEventListener() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(getString(R.string.firebase_path)).child(getString(R.string.tracker_id));
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 setMarker(dataSnapshot);
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                setMarker(dataSnapshot);
-            }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Log.d(TrackerService.TAG, "Failed to read value.", error.toException());
             }
         });
+//        ref.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+//                setMarker(dataSnapshot);
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+//                setMarker(dataSnapshot);
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//                Log.d(TrackerService.TAG, "Failed to read value.", error.toException());
+//            }
+//        });
     }
 
     private void setMarker(DataSnapshot dataSnapshot) {
