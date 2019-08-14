@@ -2,6 +2,8 @@ package com.fusi24.locationtracker.service;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -9,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -18,6 +21,7 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -55,7 +59,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class TrackerService extends Service {
 
-    private static final String TAG = TrackerService.class.getSimpleName();
+    public static final String TAG = TrackerService.class.getSimpleName();
 
     public static final String ACTION_START_FOREGROUND_SERVICE = "ACTION_START_FOREGROUND_SERVICE";
 
@@ -73,6 +77,12 @@ public class TrackerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {return null;}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopSelf();
+    }
 
     @Override
     public void onCreate() {
@@ -136,19 +146,46 @@ public class TrackerService extends Service {
     }
 
     private void buildNotification() {
-        String stop = "stop";
-        registerReceiver(stopReceiver, new IntentFilter(stop));
-        PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
-        // Create the persistent notification
-        Notification.Builder builder = new Notification.Builder(this)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.notification_text))
-                .setOngoing(true)
-                .setContentIntent(broadcastIntent)
-                .setSmallIcon(R.drawable.ic_tracker)
-                .setPriority(Notification.PRIORITY_MIN);
-        startForeground(1, builder.build());
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            String channelId = createNotificationChannel("my_service", "My Foreground Service");
+            String stop = "stop";
+            registerReceiver(stopReceiver, new IntentFilter(stop));
+            PendingIntent broadcastIntent = PendingIntent.getBroadcast(
+                    this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+            // Create the persistent notification
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText(getString(R.string.notification_text))
+                    .setOngoing(true)
+                    .setContentIntent(broadcastIntent)
+                    .setSmallIcon(R.drawable.ic_tracker);
+            startForeground(new Random().nextInt(50)+1, builder.build());
+        }else{
+            String stop = "stop";
+            registerReceiver(stopReceiver, new IntentFilter(stop));
+            PendingIntent broadcastIntent = PendingIntent.getBroadcast(
+                    this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+            // Create the persistent notification
+            Notification.Builder builder = new Notification.Builder(this)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText(getString(R.string.notification_text))
+                    .setOngoing(true)
+                    .setContentIntent(broadcastIntent)
+                    .setSmallIcon(R.drawable.ic_tracker);
+            startForeground(new Random().nextInt(50)+1, builder.build());
+        }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(String channelId, String channelName){
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE);
+        channel.setLightColor(Color.BLUE);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(channel);
+        return channelId;
     }
 
     protected BroadcastReceiver stopReceiver = new BroadcastReceiver() {
@@ -185,7 +222,7 @@ public class TrackerService extends Service {
         request.setFastestInterval(5000);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
-        final String path = getString(R.string.firebase_path) + "/" + new Random().nextInt(50)+1;
+        final String path = getString(R.string.firebase_path) + "/" + getString(R.string.tracker_id);
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permission == PackageManager.PERMISSION_GRANTED) {
@@ -211,7 +248,10 @@ public class TrackerService extends Service {
         locationHistory.setLatitude(location.getLatitude());
         locationHistory.setLongitude(location.getLongitude());
         locationHistory.setEmployeeId(43884);
-        locationHistory.setCheckpointId(db.locationDao().selectLast().getId());
+        LocationHistory checkpoint = db.locationDao().selectLast();
+        if(checkpoint != null){
+            locationHistory.setCheckpointId(checkpoint.getId());
+        }
         String deviceInfo="Device Info:";
         deviceInfo += "\n OS Version: " + System.getProperty("os.version") + "(" + android.os.Build.VERSION.INCREMENTAL + ")";
         deviceInfo += "\n OS API Level: " + android.os.Build.VERSION.SDK_INT;
