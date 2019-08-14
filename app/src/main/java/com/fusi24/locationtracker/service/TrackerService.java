@@ -211,6 +211,7 @@ public class TrackerService extends Service {
                     requestLocationUpdates();
                 } else {
                     Log.d(TAG, "firebase auth failed");
+
                 }
             }
         });
