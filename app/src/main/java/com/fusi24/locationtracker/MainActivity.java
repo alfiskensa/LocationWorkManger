@@ -16,8 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.fusi24.locationtracker.databinding.ActivityMainBinding;
+import com.fusi24.locationtracker.service.MyWorker;
 import com.fusi24.locationtracker.service.TrackerService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,10 +30,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST = 1;
+
+    private static final String TAG = "BackgroundLocationUpdate";
 
     private ActivityMainBinding mainBinding;
     private DatabaseReference ref;
@@ -66,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
                     PERMISSIONS_REQUEST);
         }
 
+        startWorker();
+
         mainBinding.appCompatButtonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(MainActivity.this, TrackerService.class);
                     intent.setAction(TrackerService.ACTION_START_FOREGROUND_SERVICE);
                     startService(intent);
+                    stopWorker();
                     mainBinding.appCompatButtonStart.setText(getString(R.string.button_text_stop));
                     mainBinding.message.setText(R.string.message_worker_running);
                     setMessage();
@@ -80,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(MainActivity.this, TrackerService.class);
                     intent.setAction(TrackerService.ACTION_STOP_FOREGROUND_SERVICE);
                     startService(intent);
+                    startWorker();
                     mainBinding.appCompatButtonStart.setText(getString(R.string.button_text_start));
                     mainBinding.message.setText(getString(R.string.message_worker_stopped));
                     mainBinding.logs.setText(getString(R.string.log_for_stopped));
@@ -93,6 +104,22 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MapsActivity.class));
             }
         });
+    }
+
+    private void startWorker(){
+        PeriodicWorkRequest periodicWork = new PeriodicWorkRequest.Builder(MyWorker.class, 15, TimeUnit.MINUTES)
+                .addTag(TAG)
+                .build();
+        WorkManager.getInstance().enqueueUniquePeriodicWork("Location", ExistingPeriodicWorkPolicy.REPLACE, periodicWork);
+
+        Toast.makeText(MainActivity.this, "Location Worker Started : " + periodicWork.getId(), Toast.LENGTH_SHORT).show();
+
+    }
+
+    private void stopWorker(){
+        WorkManager.getInstance().cancelAllWorkByTag(TAG);
+        Toast.makeText(MainActivity.this, "Location Worker Stopped", Toast.LENGTH_SHORT).show();
+
     }
 
     private void setMessage(){

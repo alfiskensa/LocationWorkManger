@@ -39,10 +39,6 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
@@ -132,7 +128,7 @@ public class TrackerService extends Service {
 
     public void startForegroundServce(){
         buildNotification();
-        loginToFirebase();
+        requestLocationUpdates();
     }
 
     public void stopForegroundService(){
@@ -146,46 +142,48 @@ public class TrackerService extends Service {
     }
 
     private void buildNotification() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            String channelId = createNotificationChannel("my_service", "My Foreground Service");
-            String stop = "stop";
-            registerReceiver(stopReceiver, new IntentFilter(stop));
-            PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                    this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
-            // Create the persistent notification
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                    .setContentTitle(getString(R.string.app_name))
-                    .setContentText(getString(R.string.notification_text))
-                    .setOngoing(true)
-                    .setContentIntent(broadcastIntent)
-                    .setSmallIcon(R.drawable.ic_tracker);
-            startForeground(new Random().nextInt(50)+1, builder.build());
-        }else{
-            String stop = "stop";
-            registerReceiver(stopReceiver, new IntentFilter(stop));
-            PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                    this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
-            // Create the persistent notification
-            Notification.Builder builder = new Notification.Builder(this)
-                    .setContentTitle(getString(R.string.app_name))
-                    .setContentText(getString(R.string.notification_text))
-                    .setOngoing(true)
-                    .setContentIntent(broadcastIntent)
-                    .setSmallIcon(R.drawable.ic_tracker);
-            startForeground(new Random().nextInt(50)+1, builder.build());
-        }
+//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//            String channelId = createNotificationChannel("my_service", "My Foreground Service");
+//            String stop = "stop";
+//            registerReceiver(stopReceiver, new IntentFilter(stop));
+//            PendingIntent broadcastIntent = PendingIntent.getBroadcast(
+//                    this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+//            // Create the persistent notification
+//            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+//                    .setContentTitle(getString(R.string.app_name))
+//                    .setContentText(getString(R.string.notification_text))
+//                    .setOngoing(true)
+//                    .setContentIntent(broadcastIntent)
+//                    .setSmallIcon(R.drawable.ic_tracker);
+//            startForeground(new Random().nextInt(50)+1, builder.build());
+//        }else{
+            // Create notification default intent.
+            Intent intent = new Intent();
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-    }
+            // Create notification builder.
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(String channelId, String channelName){
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE);
-        channel.setLightColor(Color.BLUE);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        assert manager != null;
-        manager.createNotificationChannel(channel);
-        return channelId;
+            // Make notification show big text.
+            NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
+            bigTextStyle.setBigContentTitle("Location tracker implemented by foreground service.");
+            bigTextStyle.bigText("Android foreground service is a android service which can run in foreground always, it can be controlled by user via notification.");
+            // Set big text style.
+            builder.setStyle(bigTextStyle);
+
+            builder.setWhen(System.currentTimeMillis());
+            builder.setSmallIcon(R.drawable.ic_tracker);
+            // Make the notification max priority.
+            builder.setPriority(Notification.PRIORITY_MIN);
+            // Make head-up notification.
+            builder.setFullScreenIntent(pendingIntent, true);
+
+            // Build the notification.
+            Notification notification = builder.build();
+
+            startForeground(new Random().nextInt(50)+1, notification);
+//        }
+
     }
 
     protected BroadcastReceiver stopReceiver = new BroadcastReceiver() {
@@ -198,24 +196,17 @@ public class TrackerService extends Service {
         }
     };
 
-    private void loginToFirebase() {
-        //Authenticate with Firebase, and request location updates
-        String email = getString(R.string.firebase_email);
-        String password = getString(R.string.firebase_password);
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(
-                email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>(){
-            @Override
-            public void onComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "firebase auth success");
-                    requestLocationUpdates();
-                } else {
-                    Log.d(TAG, "firebase auth failed");
-
-                }
-            }
-        });
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(String channelId, String channelName){
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE);
+        channel.setLightColor(Color.BLUE);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(channel);
+        return channelId;
     }
+
 
     private void requestLocationUpdates() {
         LocationRequest request = new LocationRequest();
