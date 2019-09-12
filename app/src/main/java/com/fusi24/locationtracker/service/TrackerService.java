@@ -33,6 +33,7 @@ import com.fusi24.locationtracker.data.AppDatabase;
 import com.fusi24.locationtracker.data.ManualTime;
 import com.fusi24.locationtracker.model.LocationHistory;
 import com.fusi24.locationtracker.model.LocationHistoryResponse;
+import com.fusi24.locationtracker.model.LocationTrackerRequest;
 import com.fusi24.locationtracker.model.Times;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -72,12 +73,14 @@ public class TrackerService extends Service {
     TextToSpeech tTS;
 
     @Override
-    public IBinder onBind(Intent intent) {return null;}
+    public IBinder onBind(Intent intent) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopSelf();
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        this.stopSelf();
     }
 
     @Override
@@ -132,13 +135,18 @@ public class TrackerService extends Service {
     }
 
     public void stopForegroundService(){
+        Intent intent = new Intent();
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+        client.removeLocationUpdates(pendingIntent);
         Log.d(TAG, "Stop foreground service.");
 
         // Stop foreground service and remove the notification.
-        stopForeground(true);
+        //stopForeground(true);
 
         // Stop the foreground service.
         stopSelf();
+
     }
 
     private void buildNotification() {
@@ -166,17 +174,32 @@ public class TrackerService extends Service {
 
             // Make notification show big text.
             NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
-            bigTextStyle.setBigContentTitle("Location tracker implemented by foreground service.");
+            bigTextStyle.setBigContentTitle("Location Tracker implemented by foreground service.");
             bigTextStyle.bigText("Android foreground service is a android service which can run in foreground always, it can be controlled by user via notification.");
             // Set big text style.
             builder.setStyle(bigTextStyle);
 
             builder.setWhen(System.currentTimeMillis());
+            builder.setSmallIcon(R.mipmap.ic_launcher);
             builder.setSmallIcon(R.drawable.ic_tracker);
             // Make the notification max priority.
-            builder.setPriority(Notification.PRIORITY_MIN);
+            builder.setPriority(Notification.PRIORITY_MAX);
             // Make head-up notification.
             builder.setFullScreenIntent(pendingIntent, true);
+
+//            // Add Play button intent in notification.
+//            Intent playIntent = new Intent(this, TrackerService.class);
+//            playIntent.setAction(ACTION_PLAY);
+//            PendingIntent pendingPlayIntent = PendingIntent.getService(this, 0, playIntent, 0);
+//            NotificationCompat.Action playAction = new NotificationCompat.Action(android.R.drawable.ic_media_play, "Play", pendingPlayIntent);
+//            builder.addAction(playAction);
+//
+//            // Add Pause button intent in notification.
+//            Intent pauseIntent = new Intent(this, TrackerService.class);
+//            pauseIntent.setAction(ACTION_PAUSE);
+//            PendingIntent pendingPrevIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
+//            NotificationCompat.Action prevAction = new NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause", pendingPrevIntent);
+//            builder.addAction(prevAction);
 
             // Build the notification.
             Notification notification = builder.build();
@@ -227,7 +250,10 @@ public class TrackerService extends Service {
                     Location location = locationResult.getLastLocation();
                     if (location != null) {
                         Log.d(TAG, "location update " + location);
-                        ref.setValue(location);
+                        LocationTrackerRequest request1 = new LocationTrackerRequest();
+                        request1.setLocation(location);
+                        request1.setIsActive(true);
+                        ref.setValue(request1);
                         sendLocation(location);
                     }
                 }

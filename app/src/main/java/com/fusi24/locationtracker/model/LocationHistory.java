@@ -27,4 +27,6 @@ public class LocationHistory {
 
     public Integer checkpointId;
 
+    private Boolean isOnSite;
+
 }

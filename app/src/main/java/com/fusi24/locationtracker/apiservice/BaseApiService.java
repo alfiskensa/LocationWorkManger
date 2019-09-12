@@ -9,6 +9,6 @@ import retrofit2.http.POST;
 
 public interface BaseApiService {
 
-    @POST("api/locationhistory")
+    @POST("api/locationhistory/locations")
     Observable<LocationHistoryResponse> locationSend(@Body LocationHistory locationHistory);
 }

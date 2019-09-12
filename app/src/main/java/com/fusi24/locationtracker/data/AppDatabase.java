@@ -8,16 +8,18 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 import com.fusi24.locationtracker.model.LocationHistory;
+import com.fusi24.locationtracker.model.LocationTrackerRequest;
 import com.fusi24.locationtracker.model.Times;
 import com.fusi24.locationtracker.util.DateTypeConverter;
 
-@Database(entities = {LocationHistory.class, Times.class}, version = 2, exportSchema = false)
+@Database(entities = {LocationHistory.class, Times.class}, version = 3, exportSchema = false)
 @TypeConverters({DateTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase mInstance;
     private static final String DATABASE_NAME = "location-database";
     public abstract LocationDao locationDao();
     public abstract TimesDao timesDao();
+   // public abstract LocationTrackerDao trackerRequestDao();
 
     private static  volatile AppDatabase INSTANCE;
 

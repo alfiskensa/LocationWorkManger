@@ -104,8 +104,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // boundaries required to show them all on the map at once
         String key = dataSnapshot.getKey();
         HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
-        double lat = Double.parseDouble(value.get("latitude").toString());
-        double lng = Double.parseDouble(value.get("longitude").toString());
+        HashMap<String, Object> loc = (HashMap<String, Object>) value.get("location");
+        double lat = Double.parseDouble(loc.get("latitude").toString());
+        double lng = Double.parseDouble(loc.get("longitude").toString());
         LatLng location = new LatLng(lat, lng);
         if (!mMarkers.containsKey(key)) {
             mMarkers.put(key, mMap.addMarker(new MarkerOptions().title(key).position(location)));

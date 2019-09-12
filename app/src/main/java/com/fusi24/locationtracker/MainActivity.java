@@ -20,7 +20,9 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.fusi24.locationtracker.data.AppDatabase;
 import com.fusi24.locationtracker.databinding.ActivityMainBinding;
+import com.fusi24.locationtracker.model.LocationTrackerRequest;
 import com.fusi24.locationtracker.service.MyWorker;
 import com.fusi24.locationtracker.service.TrackerService;
 import com.google.firebase.database.DataSnapshot;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mainBinding;
     private DatabaseReference ref;
+    private AppDatabase db;
     private String msg;
 
     @Override
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
             mainBinding.showMap.setVisibility(View.INVISIBLE);
         }
 
+        db = AppDatabase.getInstance(getApplicationContext());
 
         final String path = getString(R.string.firebase_path) + "/" + getString(R.string.tracker_id);
         ref = FirebaseDatabase.getInstance().getReference(path);
@@ -94,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
                     mainBinding.appCompatButtonStart.setText(getString(R.string.button_text_start));
                     mainBinding.message.setText(getString(R.string.message_worker_stopped));
                     mainBinding.logs.setText(getString(R.string.log_for_stopped));
+                    ref.child(getString(R.string.tracker_id));
+                    LocationTrackerRequest request = new LocationTrackerRequest();
+                    request.setIsActive(false);
+                    ref.setValue(request);
+                    forceStop();
                 }
             }
         });
@@ -104,6 +113,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MapsActivity.class));
             }
         });
+    }
+
+    void forceStop(){
+        finish();
+        throw new NullPointerException();
     }
 
     private void startWorker(){
@@ -128,12 +142,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
-                    HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
                     double lat = 0;
                     double lng = 0;
+                    HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
+                    HashMap<String, Object> location = (HashMap<String, Object>) value.get("location");
                     if(value != null){
-                        lat = Double.parseDouble(value.get("latitude").toString());
-                        lng = Double.parseDouble(value.get("longitude").toString());
+                        lat = Double.parseDouble(location.get("latitude").toString());
+                        lng = Double.parseDouble(location.get("longitude").toString());
                     }
                     String msg = "You are at: "+lat+", "+lng;
                     mainBinding.logs.setText(msg);
