@@ -81,6 +81,17 @@
                 android:minHeight="48dip"
                 android:text="Show in Map"
                 android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/buttonHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/show_map"
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginRight="30dp"
+                android:text="View My History Location" />
         </RelativeLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

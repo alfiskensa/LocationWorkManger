@@ -58,12 +58,25 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
+    //butterknife
+    implementation 'com.jakewharton:butterknife:10.2.0'
+
     // Room components
     implementation "androidx.room:room-runtime:2.1.0-alpha04"
     annotationProcessor "androidx.room:room-compiler:2.1.0-alpha04"
     androidTestImplementation "androidx.room:room-testing:2.1.0-alpha04"
 
+
+    //moshi
+    implementation 'com.squareup.moshi:moshi:1.8.0'
+    implementation 'com.squareup.moshi:moshi-adapters:1.8.0'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.3.0'
+
+    implementation 'moe.banana:moshi-jsonapi:master-SNAPSHOT'
+
     //Circle indicator
     implementation 'me.relex:circleindicator:1.2.2'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
 
 }
