@@ -42,7 +42,38 @@ public class RetrofitClient {
         return retrofit;
     }
 
-    public static  Retrofit getJsonApiClient(String baseUrl){
+    public static Retrofit getJsonApiClient(String baseUrl){
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient
+                .Builder()
+                .addInterceptor(interceptor)
+                .readTimeout(10,TimeUnit.SECONDS)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        JsonAdapter.Factory factory = ResourceAdapterFactory.builder()
+                .add(Location.class)
+                .add(LocationType.class)
+                .add(Employee.class)
+                .add(LocationHistory.class)
+                .build();
+
+        Moshi moshi = new Moshi.Builder()
+                .add(factory)
+                .add(Date.class, new Rfc3339DateJsonAdapter().nullSafe())
+                .build();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(JsonApiConverterFactory.create(moshi))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .client(client)
+                .build();
+        return retrofit;
+    }
+
+    public static Retrofit getBcui2Client(String baseUrl){
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient

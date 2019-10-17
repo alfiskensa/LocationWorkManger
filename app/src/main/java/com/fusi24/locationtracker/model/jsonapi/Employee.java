@@ -1,5 +1,11 @@
 package com.fusi24.locationtracker.model.jsonapi;
 
+import androidx.annotation.Keep;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.clustering.ClusterItem;
+
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Getter;
@@ -9,8 +15,9 @@ import moe.banana.jsonapi2.JsonApi;
 import moe.banana.jsonapi2.Resource;
 
 @JsonApi(type = "employee")
+@Keep
 @Getter @Setter
-public class Employee extends Resource {
+public class Employee extends Resource implements Serializable {
 
     private String code;
     private String sidCode;
@@ -45,6 +52,10 @@ public class Employee extends Resource {
     private String villageAddress;
     private String subDistrictAddress;
     private HasOne<Department> department;
+
+    public Employee(){
+
+    }
 
     public String getCode() {
         return code;
@@ -309,4 +320,5 @@ public class Employee extends Resource {
     public void setDepartment(HasOne<Department> department) {
         this.department = department;
     }
+
 }

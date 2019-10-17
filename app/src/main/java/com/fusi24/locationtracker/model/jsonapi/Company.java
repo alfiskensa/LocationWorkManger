@@ -10,7 +10,7 @@ import moe.banana.jsonapi2.Resource;
 
 @JsonApi(type = "company")
 @Getter @Setter
-public class Company extends Resource {
+public class Company extends Resource{
 
     private String code;
     private String name;

@@ -29,12 +29,15 @@ import androidx.core.content.ContextCompat;
 import com.fusi24.locationtracker.R;
 import com.fusi24.locationtracker.apiservice.ApiUtils;
 import com.fusi24.locationtracker.apiservice.BaseApiService;
+import com.fusi24.locationtracker.apiservice.BaseBCUI2Service;
 import com.fusi24.locationtracker.data.AppDatabase;
 import com.fusi24.locationtracker.data.ManualTime;
 import com.fusi24.locationtracker.model.LocationHistory;
 import com.fusi24.locationtracker.model.LocationHistoryResponse;
 import com.fusi24.locationtracker.model.LocationTrackerRequest;
 import com.fusi24.locationtracker.model.Times;
+import com.fusi24.locationtracker.model.jsonapi.Employee;
+import com.fusi24.locationtracker.util.JsonApiExclusionStrategy;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -43,16 +46,21 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import moe.banana.jsonapi2.Document;
+import moe.banana.jsonapi2.ObjectDocument;
 
 public class TrackerService extends Service {
 
@@ -69,6 +77,10 @@ public class TrackerService extends Service {
     private BaseApiService mApiService;
 
     private AppDatabase db;
+
+    private BaseBCUI2Service moe;
+
+    private Employee emp;
 
     TextToSpeech tTS;
 
@@ -88,6 +100,8 @@ public class TrackerService extends Service {
         super.onCreate();
         db = AppDatabase.getInstance(getApplicationContext());
         mApiService = ApiUtils.getAPIService();
+        moe = ApiUtils.getBCUI2Service();
+        getEmployee(getString(R.string.tracker_id));
         tTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -147,6 +161,33 @@ public class TrackerService extends Service {
         // Stop the foreground service.
         stopSelf();
 
+    }
+
+    private void getEmployee(String id){
+        moe.findById(id)
+                .subscribeOn(Schedulers.single())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Employee>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Employee employee) {
+                        emp = employee;
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void buildNotification() {
@@ -253,8 +294,13 @@ public class TrackerService extends Service {
                         LocationTrackerRequest request1 = new LocationTrackerRequest();
                         request1.setLocation(location);
                         request1.setIsActive(true);
-                        ref.setValue(request1);
-                        sendLocation(location);
+                        Gson gson = new GsonBuilder().setExclusionStrategies(new JsonApiExclusionStrategy()).create();
+                        if(emp != null){
+                            request1.setEmployee(gson.fromJson(gson.toJson(emp), Object.class));
+                            System.out.println(gson.toJsonTree(emp).toString());
+                            ref.setValue(request1);
+                            sendLocation(location);
+                        }
                     }
                 }
             }, null);

@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                     double lng = 0;
                     HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
                     HashMap<String, Object> location = (HashMap<String, Object>) value.get("location");
-                    if(value != null){
+                    if(location != null){
                         lat = Double.parseDouble(location.get("latitude").toString());
                         lng = Double.parseDouble(location.get("longitude").toString());
                     }
