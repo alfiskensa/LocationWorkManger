@@ -1,17 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 28
+	compileSdkVersion 31
 	defaultConfig {
 		applicationId "com.pratikbutani.workerexample"
 		minSdkVersion 15
-		targetSdkVersion 28
+		targetSdkVersion 31
 		versionCode 1
 		versionName "1.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 	}
-	dataBinding {
-		enabled true
+	buildFeatures {
+		dataBinding true
 	}
 	buildTypes {
 		release {
@@ -32,11 +32,11 @@ dependencies {
 	implementation 'com.google.android.material:material:1.0.0'
 	testImplementation 'junit:junit:4.12'
 	androidTestImplementation 'androidx.test:runner:1.2.0'
-	implementation 'androidx.work:work-runtime:2.0.1'
-	implementation 'com.google.android.gms:play-services-location:16.0.0'
-	implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-	implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
-	implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
+	implementation 'androidx.work:work-runtime:2.7.1'
+	implementation 'com.google.android.gms:play-services-location:19.0.1'
+	implementation 'com.squareup.retrofit2:retrofit:2.8.1'
+	implementation 'com.squareup.retrofit2:converter-gson:2.8.1'
+	implementation 'com.squareup.okhttp3:logging-interceptor:3.14.8'
 
 	implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
 	implementation 'io.reactivex.rxjava2:rxjava:2.1.6'
@@ -45,13 +45,13 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-core:2.9.9'
 	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
-	implementation 'org.projectlombok:lombok:1.18.8'
-	annotationProcessor 'org.projectlombok:lombok:1.18.8'
+	implementation 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 	// Room components
-	implementation "androidx.room:room-runtime:2.1.0-alpha04"
-	annotationProcessor "androidx.room:room-compiler:2.1.0-alpha04"
-	androidTestImplementation "androidx.room:room-testing:2.1.0-alpha04"
+	implementation "androidx.room:room-runtime:2.4.1"
+	annotationProcessor "androidx.room:room-compiler:2.4.1"
+	androidTestImplementation "androidx.room:room-testing:2.4.1"
 
 
 

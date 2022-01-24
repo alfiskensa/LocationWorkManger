@@ -9,4 +9,20 @@ import lombok.ToString;
 public class LocationHistoryResponse {
     private LocationHistory locationHistory;
     private String message;
+
+    public LocationHistory getLocationHistory() {
+        return locationHistory;
+    }
+
+    public void setLocationHistory(LocationHistory locationHistory) {
+        this.locationHistory = locationHistory;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

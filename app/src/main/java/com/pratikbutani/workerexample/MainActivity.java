@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 					new String[]{ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
 		}
 
-        PeriodicWorkRequest periodicWork = new PeriodicWorkRequest.Builder(MyWorker.class, 15, TimeUnit.MINUTES)
+        PeriodicWorkRequest periodicWork = new PeriodicWorkRequest.Builder(MyWorker.class, 1, TimeUnit.MINUTES)
                 .addTag(TAG)
                 .build();
         WorkManager.getInstance().enqueueUniquePeriodicWork("Location", ExistingPeriodicWorkPolicy.REPLACE, periodicWork);
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 		try {
 			if (isWorkScheduled(WorkManager.getInstance().getWorkInfosByTag(TAG).get())) {
 				mainBinding.appCompatButtonStart.setText(getString(R.string.button_text_stop));
-				mainBinding.message.setText(getString(R.string.message_worker_running));
+				mainBinding.message.setText(periodicId);
 				mainBinding.logs.setText(getString(R.string.log_for_running));
 			} else {
 				mainBinding.appCompatButtonStart.setText(getString(R.string.button_text_start));
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 			public void onClick(View v) {
 				if (mainBinding.appCompatButtonStart.getText().toString().equalsIgnoreCase(getString(R.string.button_text_start))) {
 					// START Worker
-					PeriodicWorkRequest periodicWork = new PeriodicWorkRequest.Builder(MyWorker.class, 15, TimeUnit.MINUTES)
+					PeriodicWorkRequest periodicWork = new PeriodicWorkRequest.Builder(MyWorker.class, 1, TimeUnit.MINUTES)
 							.addTag(TAG)
 							.build();
 					WorkManager.getInstance().enqueueUniquePeriodicWork("Location", ExistingPeriodicWorkPolicy.REPLACE, periodicWork);
